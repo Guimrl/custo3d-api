@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import routes from "./routes/index.js";
-import db from "./config/dbConnect.js";
+import routes from "./routes/index";
+import db from "./config/dbConnect";
 
 db.on("error", console.log.bind(console, "Connection error"));
 db.once("open", () => {
@@ -12,7 +12,9 @@ const app = express();
 app.use(cors());
 
 const jsonParser = express.json();
-app.use((req, res, next) => jsonParser(req, res, next));
+app.use((req, res, next) =>
+  req.path.startsWith("/uploads") ? next() : jsonParser(req, res, next),
+);
 
 routes(app);
 

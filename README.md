@@ -10,15 +10,15 @@ API da calculadora de custo de impressão 3D: carretéis de filamento, outros ma
 
 ## Scripts
 
-| Comando             | O que faz                                            |
-| ------------------- | ---------------------------------------------------- |
-| `npm run dev`       | Sobe a API com recarregamento automático (tsx watch) |
-| `npm run build`     | Compila o TypeScript para `dist/`                    |
-| `npm start`         | Roda a versão compilada (`dist/server.js`)           |
-| `npm test`          | Testes do motor de cálculo                           |
-| `npm run typecheck` | Verifica os tipos                                    |
-| `npm run lint`      | ESLint com correção automática                       |
-| `npm run db:check`  | Testa a conexão com o MongoDB                        |
+| Comando             | O que faz                                                      |
+| ------------------- | -------------------------------------------------------------- |
+| `npm run dev`       | Sobe a API com recarregamento automático (tsx watch)           |
+| `npm run build`     | Verifica tipos e empacota o módulo Express em `dist/server.js` |
+| `npm start`         | Roda a versão compilada (`dist/server.js`)                     |
+| `npm test`          | Testes do motor de cálculo                                     |
+| `npm run typecheck` | Verifica os tipos                                              |
+| `npm run lint`      | ESLint com correção automática                                 |
+| `npm run db:check`  | Testa a conexão com o MongoDB                                  |
 
 ## Autor
 
