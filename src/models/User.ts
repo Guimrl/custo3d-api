@@ -1,3 +1,4 @@
+import lodash from "lodash";
 import mongoose from "mongoose";
 import { schemaOptions } from "./utils";
 
@@ -25,12 +26,8 @@ const userSchema = new mongoose.Schema<UserType>(
     ...schemaOptions,
     toJSON: {
       ...schemaOptions.toJSON,
-      transform: (_doc: unknown, ret: Record<string, unknown>) => {
-        delete ret._id;
-        delete ret.password;
-        delete ret.passwordHash;
-        return ret;
-      },
+      transform: (_document: unknown, json: Record<string, unknown>) =>
+        lodash.omit(json, ["_id", "password", "passwordHash"]),
     },
   },
 );
