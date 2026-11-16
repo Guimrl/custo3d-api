@@ -6,6 +6,7 @@ import spools from "./spoolRoutes";
 import uploads from "./uploadRoutes";
 import equipment from "./equipmentRoutes";
 import supplies from "./supplyRoutes";
+import prints from "./printRoutes";
 
 const routes = (app: Express) => {
   app.route("/").get((_req, res) => {
@@ -14,7 +15,16 @@ const routes = (app: Express) => {
   app.use(auth);
 
   app.use(authenticate);
-  app.use(settings, spools, supplies, equipment, uploads);
+  app.use(
+    settings,
+    spools,
+    supplies,
+    equipment,
+    uploads,
+    prints,
+    // summary,
+    // finishes,
+  );
 
   app.use((req, res) => {
     res

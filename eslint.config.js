@@ -12,7 +12,6 @@ export default tseslint.config(
       quotes: ["error", "double", { avoidEscape: true }],
       semi: ["error", "always"],
       curly: ["error", "all"],
-      "id-length": ["error", { min: 2, properties: "never" }],
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
