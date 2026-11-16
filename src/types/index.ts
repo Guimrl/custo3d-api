@@ -35,7 +35,7 @@ export interface Equipment {
   type: EquipmentType;
   name: string;
   brand?: string;
-  /** Quanto você pagou (R$). */
+  /** Quanto foi pago */
   price: number;
   /** Em quantas horas de uso o equipamento "se paga" (vida útil estimada). */
   lifespanHours: number;
@@ -75,7 +75,7 @@ export interface Spool {
   remainingGrams: number;
   /** Peso do carretel vazio (tara), para conferir o restante pesando na balança. */
   emptySpoolGrams?: number;
-  /** Quanto você pagou pelo carretel inteiro (R$). */
+  /** Quanto você pagou pelo carretel inteiro. */
   pricePaid: number;
   purchaseDate?: string;
   supplier?: string;
@@ -106,7 +106,7 @@ export interface Supply {
   unit: string;
   /** Total já comprado (soma de todas as reposições). */
   quantityPurchased: number;
-  /** Total já pago por esse total comprado (R$). */
+  /** Total já pago por esse total comprado. */
   pricePaid: number;
   /** Quanto ainda há em estoque. */
   quantityRemaining: number;
@@ -194,7 +194,7 @@ export interface CostLine {
 /** Análise de um preço de venda: quanto sobra, margem e quanto de desconto cabe. */
 export interface PriceAnalysis {
   price: number;
-  /** Quanto a plataforma fica (R$). */
+  /** Quanto a plataforma fica. */
   fee: number;
   /** O que entra no seu bolso (preço − taxa). */
   net: number;

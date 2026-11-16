@@ -3,6 +3,9 @@ import { authenticate } from "../middlewares/authenticate";
 import auth from "./authRoutes";
 import settings from "./settingsRoutes";
 import spools from "./spoolRoutes";
+import uploads from "./uploadRoutes";
+import equipment from "./equipmentRoutes";
+import supplies from "./supplyRoutes";
 
 const routes = (app: Express) => {
   app.route("/").get((_req, res) => {
@@ -11,7 +14,7 @@ const routes = (app: Express) => {
   app.use(auth);
 
   app.use(authenticate);
-  app.use(settings, spools);
+  app.use(settings, spools, supplies, equipment, uploads);
 
   app.use((req, res) => {
     res
