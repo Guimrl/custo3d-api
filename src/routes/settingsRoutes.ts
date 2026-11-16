@@ -4,7 +4,7 @@ import SettingsController from "../controllers/SettingsController";
 const router = express.Router();
 
 router
-  .get("/settings", SettingsController.getSettings)
-  .put("/settings", SettingsController.updateSettings);
+  .get("/settings", SettingsController.find)
+  .put("/settings", SettingsController.update);
 
 export default router;

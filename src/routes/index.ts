@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { authenticate } from "../middlewares/authenticate";
 import auth from "./authRoutes";
 import settings from "./settingsRoutes";
+import spools from "./spoolRoutes";
 
 const routes = (app: Express) => {
   app.route("/").get((_req, res) => {
@@ -10,7 +11,7 @@ const routes = (app: Express) => {
   app.use(auth);
 
   app.use(authenticate);
-  app.use(settings);
+  app.use(settings, spools);
 
   app.use((req, res) => {
     res

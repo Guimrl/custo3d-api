@@ -5,7 +5,8 @@ export const schemaOptions = {
   versionKey: false as const, // o Mongoose aceita só o literal false, não qualquer boolean
   toJSON: {
     virtuals: true,
-    transform: (_document: unknown, json: Record<string, unknown>) => lodash.omit(json, "_id"),
+    transform: (_document: unknown, json: Record<string, unknown>) =>
+      lodash.omit(json, "_id"),
   },
 };
 

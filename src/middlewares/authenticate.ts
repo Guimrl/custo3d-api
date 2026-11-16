@@ -15,7 +15,9 @@ const BEARER_PREFIX = "Bearer ";
  */
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization ?? "";
-  const token = header.startsWith(BEARER_PREFIX) ? header.slice(BEARER_PREFIX.length) : "";
+  const token = header.startsWith(BEARER_PREFIX)
+    ? header.slice(BEARER_PREFIX.length)
+    : "";
   const user = token ? verifyToken(token) : null;
 
   if (!user) {

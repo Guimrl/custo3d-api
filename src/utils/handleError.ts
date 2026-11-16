@@ -7,7 +7,10 @@ const META_FIELDS = ["id", "_id", "createdAt", "updatedAt"];
 
 /** Corpo da requisição sem id e datas, pronto para gravar. */
 export const withoutMetaFields = (body: unknown): Record<string, unknown> =>
-  lodash.omit(lodash.isPlainObject(body) ? (body as Record<string, unknown>) : {}, META_FIELDS);
+  lodash.omit(
+    lodash.isPlainObject(body) ? (body as Record<string, unknown>) : {},
+    META_FIELDS,
+  );
 
 export function handleError(
   res: Response,
@@ -34,4 +37,11 @@ export function handleError(
   console.error(error);
   const message = error instanceof Error ? error.message : String(error);
   res.status(500).json({ message: `${context}: ${message}` });
+}
+
+export class NotFoundError extends Error {
+  constructor(message = "Registro não encontrado.") {
+    super(message);
+    this.name = "NotFoundError";
+  }
 }

@@ -22,8 +22,14 @@ const settingsSchema = new mongoose.Schema<SettingsType>(
     kwhPrice: numberField({ default: DEFAULT_SETTINGS.kwhPrice }),
     failureRatePct: numberField({ default: DEFAULT_SETTINGS.failureRatePct }),
     laborHourRate: numberField({ default: DEFAULT_SETTINGS.laborHourRate }),
-    platformFeePct: numberField({ default: DEFAULT_SETTINGS.platformFeePct, max: 99 }),
-    minMarginPct: numberField({ default: DEFAULT_SETTINGS.minMarginPct, max: 99 }),
+    platformFeePct: numberField({
+      default: DEFAULT_SETTINGS.platformFeePct,
+      max: 99,
+    }),
+    minMarginPct: numberField({
+      default: DEFAULT_SETTINGS.minMarginPct,
+      max: 99,
+    }),
     lowStockGrams: numberField({ default: DEFAULT_SETTINGS.lowStockGrams }),
     tiers: {
       barato: numberField({ default: DEFAULT_SETTINGS.tiers.barato }),

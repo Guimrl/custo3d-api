@@ -2,8 +2,13 @@ import type { Request, Response } from "express";
 import settings, { getSettings, SETTINGS_ID } from "../models/Settings";
 import { handleError, withoutMetaFields } from "../utils/handleError";
 
-class SettingsController {
-  static getSettings = async (_req: Request, res: Response) => {
+interface ISettingsController {
+  find(req: Request, res: Response): Promise<void>;
+  update(req: Request, res: Response): Promise<void>;
+}
+
+class SettingsController implements ISettingsController {
+  find = async (_req: Request, res: Response) => {
     try {
       res.status(200).json(await getSettings());
     } catch (error) {
@@ -11,7 +16,7 @@ class SettingsController {
     }
   };
 
-  static updateSettings = async (req: Request, res: Response) => {
+  update = async (req: Request, res: Response) => {
     try {
       const result = await settings.findByIdAndUpdate(
         SETTINGS_ID,
@@ -26,4 +31,4 @@ class SettingsController {
   };
 }
 
-export default SettingsController;
+export default new SettingsController();
