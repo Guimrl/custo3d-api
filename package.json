@@ -11,8 +11,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc --noEmit -p tsconfig.build.json && esbuild src/server.ts --bundle --platform=node --format=esm --packages=external --target=es2022 --outfile=dist/server.js",
     "start": "node dist/server.js",
+    "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "db:check": "tsx src/scripts/checkDb.ts"
   },
   "author": "Guilherme Amaral",
   "license": "ISC",

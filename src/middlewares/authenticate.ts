@@ -9,11 +9,11 @@ declare module "express-serve-static-core" {
 
 const BEARER_PREFIX = "Bearer ";
 
-/**
- * Exige "Authorization: Bearer <token>" válido. Registrado em routes/index.ts:
- * toda rota registrada depois dele fica protegida.
- */
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const header = req.headers.authorization ?? "";
   const token = header.startsWith(BEARER_PREFIX)
     ? header.slice(BEARER_PREFIX.length)
@@ -28,4 +28,4 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
   req.user = user;
   next();
-}
+};

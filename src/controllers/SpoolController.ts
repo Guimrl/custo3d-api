@@ -50,7 +50,7 @@ class SpoolController implements ISpoolController {
     const { query } = req;
 
     try {
-      const searchTerm = String(query?.term ?? "").trim();
+      const searchTerm = String(query?.q ?? "").trim();
       const regex = new RegExp(
         searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
         "i",
@@ -68,9 +68,13 @@ class SpoolController implements ISpoolController {
   findById = async (req: Request, res: Response): Promise<void> => {
     try {
       const result = await spools.findById(req.params.id);
+      if (!result) {
+        throw new NotFoundError("Carretel não encontrado.");
+      }
+
       res.status(200).json(result);
     } catch (error) {
-      handleError(res, error, "Erro ao buscar carretéis");
+      handleError(res, error, "Erro ao buscar carretel");
     }
   };
 

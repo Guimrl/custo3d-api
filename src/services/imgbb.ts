@@ -19,12 +19,12 @@ export const isUploadEnabled = () => Boolean(process.env.IMGBB_API_KEY);
  * @param base64 conteúdo da imagem
  * @param name   nome do arquivo
  */
-export async function uploadToImgbb(
+export const uploadToImgbb = async (
   base64: string,
   name?: string,
-): Promise<UploadResult> {
-  const key = process.env.IMGBB_API_KEY;
-  if (!key) {
+): Promise<UploadResult> => {
+  const apiKey = process.env.IMGBB_API_KEY;
+  if (!apiKey) {
     throw new Error("Upload desativado: defina IMGBB_API_KEY no .env da API.");
   }
 
@@ -35,7 +35,7 @@ export async function uploadToImgbb(
   }
 
   const response = await fetch(
-    `https://api.imgbb.com/1/upload?key=${encodeURIComponent(key)}`,
+    `https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`,
     {
       method: "POST",
       body: form,
@@ -55,4 +55,4 @@ export async function uploadToImgbb(
     thumbUrl: json.data.thumb?.url,
     deleteUrl: json.data.delete_url,
   };
-}
+};

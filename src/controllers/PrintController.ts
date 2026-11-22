@@ -56,41 +56,43 @@ const buildPrint = async (
 
   const filaments: PrintDb["filaments"] = await Promise.all(
     (body.filaments || [])
-      .filter((filtered) => filtered.spoolId || filtered.pricePerGram)
-      .map(async (result) => {
-        const id = toId(result.spoolId);
-        const spool = id ? await spools.findById(id) : null;
+      .filter((filament) => filament.spoolId || filament.pricePerGram)
+      .map(async (filament) => {
+        const spoolId = toId(filament.spoolId);
+        const spool = spoolId ? await spools.findById(spoolId) : null;
+
         return {
-          spoolId: id,
-          label: spool ? spoolLabel(spool) : result.label,
-          colorHex: spool?.colorHex ?? result.colorHex,
-          // "Foto" das cores, para a bolinha da impressão continuar certa mesmo se o carretel mudar.
-          colors: spool?.colors?.length ? spool.colors : result.colors,
-          colorMode: spool?.colorMode ?? result.colorMode,
-          grams: Number(result.grams) || 0,
+          spoolId,
+          label: spool ? spoolLabel(spool) : filament.label,
+          colorHex: spool?.colorHex ?? filament.colorHex,
+          colors: spool?.colors?.length ? spool.colors : filament.colors,
+          colorMode: spool?.colorMode ?? filament.colorMode,
+          grams: Number(filament.grams) || 0,
           pricePerGram: spool
             ? spoolPricePerGram(spool)
-            : Number(result.pricePerGram) || 0,
+            : Number(filament.pricePerGram) || 0,
         };
       }),
   );
-  const usedSupplies: PrintDb["supplies"] = [];
-  for (const bsupplies of body.supplies || []) {
-    if (!bsupplies.supplyId && !bsupplies.unitCost) {
-      continue;
-    }
-    const id = toId(bsupplies.supplyId);
-    const supply = id ? await supplies.findById(id) : null;
-    usedSupplies.push({
-      supplyId: id,
-      label: supply?.name ?? bsupplies.label,
-      unit: supply?.unit ?? bsupplies.unit,
-      qty: Number(bsupplies.qty) || 0,
-      unitCost: supply
-        ? supplyUnitCost(supply)
-        : Number(bsupplies.unitCost) || 0,
-    });
-  }
+
+  const usedSupplies: PrintDb["supplies"] = await Promise.all(
+    (body.supplies || [])
+      .filter((usedSupply) => usedSupply.supplyId || usedSupply.unitCost)
+      .map(async (usedSupply) => {
+        const supplyId = toId(usedSupply.supplyId);
+        const supply = supplyId ? await supplies.findById(supplyId) : null;
+
+        return {
+          supplyId,
+          label: supply?.name ?? usedSupply.label,
+          unit: supply?.unit ?? usedSupply.unit,
+          qty: Number(usedSupply.qty) || 0,
+          unitCost: supply
+            ? supplyUnitCost(supply)
+            : Number(usedSupply.unitCost) || 0,
+        };
+      }),
+  );
 
   const result = calculateCost({
     settings: settings.toObject(),
@@ -171,16 +173,16 @@ class PrintController implements IPrintController {
   };
   complete = async (req: Request, res: Response): Promise<void> => {
     try {
-      const doc = await prints.findById(req.params.id);
-      if (!doc) {
+      const print = await prints.findById(req.params.id);
+      if (!print) {
         throw new NotFoundError("Impressão não encontrada.");
       }
-      const warnings = doc.stockDeducted ? [] : await applyStock(doc, -1);
-      doc.status = "concluida";
-      doc.stockDeducted = true;
-      await doc.save();
+      const warnings = print.stockDeducted ? [] : await applyStock(print, -1);
+      print.status = "concluida";
+      print.stockDeducted = true;
+      await print.save();
 
-      res.status(200).json({ ...doc.toJSON(), warnings });
+      res.status(200).json({ ...print.toJSON(), warnings });
     } catch (error) {
       handleError(res, error, "Erro ao concluir impressão");
     }
@@ -188,14 +190,14 @@ class PrintController implements IPrintController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     try {
-      const old = await prints.findById(req.params.id);
-      if (!old) {
+      const print = await prints.findById(req.params.id);
+      if (!print) {
         throw new NotFoundError("Impressão não encontrada.");
       }
       const data = await buildPrint(req.body);
 
-      if (old.stockDeducted) {
-        await applyStock(old, +1);
+      if (print.stockDeducted) {
+        await applyStock(print, +1);
       }
       let warnings: string[] = [];
       let stockDeducted = false;
@@ -203,10 +205,10 @@ class PrintController implements IPrintController {
         warnings = await applyStock(data, -1);
         stockDeducted = true;
       }
-      old.set({ ...data, stockDeducted });
-      await old.save();
+      print.set({ ...data, stockDeducted });
+      await print.save();
 
-      res.status(200).json({ ...old.toJSON(), warnings });
+      res.status(200).json({ ...print.toJSON(), warnings });
     } catch (error) {
       handleError(res, error, "Erro ao atualizar impressão");
     }
@@ -214,14 +216,14 @@ class PrintController implements IPrintController {
 
   delete = async (req: Request, res: Response): Promise<void> => {
     try {
-      const doc = await prints.findById(req.params.id);
-      if (!doc) {
+      const print = await prints.findById(req.params.id);
+      if (!print) {
         throw new NotFoundError("Impressão não encontrada.");
       }
-      if (doc.stockDeducted && req.query.restoreStock !== "false") {
-        await applyStock(doc, +1);
+      if (print.stockDeducted && req.query.restoreStock !== "false") {
+        await applyStock(print, +1);
       }
-      await doc.deleteOne();
+      await print.deleteOne();
 
       res.status(200).json({ message: "Impressão removida com sucesso." });
     } catch (error) {

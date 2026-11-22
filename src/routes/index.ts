@@ -7,6 +7,8 @@ import uploads from "./uploadRoutes";
 import equipment from "./equipmentRoutes";
 import supplies from "./supplyRoutes";
 import prints from "./printRoutes";
+import summary from "./summaryRoutes";
+import finishes from "./finishRoutes";
 
 const routes = (app: Express) => {
   app.route("/").get((_req, res) => {
@@ -22,8 +24,8 @@ const routes = (app: Express) => {
     equipment,
     uploads,
     prints,
-    // summary,
-    // finishes,
+    summary,
+    finishes,
   );
 
   app.use((req, res) => {
