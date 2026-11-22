@@ -59,19 +59,18 @@ class SupplyController implements ISupplyController {
 
   restock = async (req: Request, res: Response): Promise<void> => {
     try {
-      const qty = Number(req.body?.quantity) || 0;
+      const quantity = Number(req.body?.quantity) || 0;
       const price = Number(req.body?.price) || 0;
-      if (qty <= 0) {
+      if (quantity <= 0) {
         throw new BadRequestError("Quantidade deve ser maior que zero.");
       }
 
-      // $inc soma no valor atual, direto no banco.
       const result = await supplies.findByIdAndUpdate(
         req.params.id,
         {
           $inc: {
-            quantityPurchased: qty,
-            quantityRemaining: qty,
+            quantityPurchased: quantity,
+            quantityRemaining: quantity,
             pricePaid: price,
           },
         },

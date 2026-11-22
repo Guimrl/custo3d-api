@@ -1,3 +1,5 @@
+import type { Settings } from "../types/index";
+
 export const DEFAULT_SETTINGS = {
   kwhPrice: 0.95, // R$ por kWh
   failureRatePct: 10, // % somado para cobrir impressões que falham
@@ -10,4 +12,4 @@ export const DEFAULT_SETTINGS = {
     ideal: 120,
     caro: 200,
   },
-};
+} satisfies Settings;

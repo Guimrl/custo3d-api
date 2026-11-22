@@ -12,11 +12,61 @@ export const withoutMetaFields = (body: unknown): Record<string, unknown> =>
     META_FIELDS,
   );
 
-export function handleError(
+/** Registro buscado por id não existe (responde 404). */
+export class NotFoundError extends Error {
+  constructor(message = "Registro não encontrado.") {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+/** Dados recusados com mensagem própria (responde 400). */
+export class BadRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BadRequestError";
+  }
+}
+
+/** Serviço externo (ex.: ImgBB) recusou ou falhou (responde 502). */
+export class ExternalServiceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ExternalServiceError";
+  }
+}
+
+/** Erro 11000 do MongoDB: violou um índice unique. */
+export const isDuplicateKeyError = (error: unknown): boolean =>
+  (error as { code?: number })?.code === 11000;
+
+/**
+ * Traduz o erro capturado no catch para o status HTTP certo.
+ * Responde sempre no formato `{ "message": "..." }`.
+ */
+export const handleError = (
   res: Response,
   error: unknown,
   context: string,
-): void {
+): void => {
+  if (error instanceof NotFoundError) {
+    res.status(404).json({ message: error.message });
+
+    return;
+  }
+
+  if (error instanceof BadRequestError) {
+    res.status(400).json({ message: error.message });
+
+    return;
+  }
+
+  if (error instanceof ExternalServiceError) {
+    res.status(502).json({ message: error.message });
+
+    return;
+  }
+
   if (error instanceof mongoose.Error.CastError) {
     const message =
       error.path === "_id"
@@ -37,25 +87,4 @@ export function handleError(
   console.error(error);
   const message = error instanceof Error ? error.message : String(error);
   res.status(500).json({ message: `${context}: ${message}` });
-}
-
-export class NotFoundError extends Error {
-  constructor(message = "Registro não encontrado.") {
-    super(message);
-    this.name = "NotFoundError";
-  }
-}
-
-export class BadRequestError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "BadRequestError";
-  }
-}
-
-export class ExternalServiceError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ExternalServiceError";
-  }
-}
+};
