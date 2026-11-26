@@ -62,10 +62,10 @@ Erros sempre vêm como `{ "message": "..." }`: 400 dados inválidos, 401 sem log
 | PUT    | `/prints/:id`           | Edita e recalcula (estorna a baixa antiga e aplica a nova)                    |
 | DELETE | `/prints/:id`           | Remove e devolve o material (`?restoreStock=false` não devolve)               |
 | GET    | `/summary`              | Painel: estoque em g e R$, impressões feitas, receita, custo, lucro e alertas |
-| GET    | `/finishes`             | Acabamentos de filamento (cria os padrões se a lista estiver vazia)           |
-| POST   | `/finishes`             | Cria: `{ "name": "Metálico" }` (nome repetido → 400)                          |
-| PUT    | `/finishes/:id`         | Renomeia (os carretéis guardam o id, não são afetados)                        |
-| DELETE | `/finishes/:id`         | Remove e tira o acabamento de todos os carretéis                              |
+| GET    | `/brands`               | Marcas com materiais, tipos (Lite, Silk…) e tara do carretel                  |
+| POST   | `/brands`               | Cria: `{ "name", "materials": [{ "material", "types" }] }` (nome repetido → 400) |
+| PUT    | `/brands/:id`           | Edita; renomear atualiza o nome nos carretéis                                 |
+| DELETE | `/brands/:id`           | Remove; os carretéis mantêm o nome, sem o vínculo                             |
 | GET    | `/uploads/status`       | `{ "enabled", "maxBytes" }`: se o envio ao ImgBB está configurado             |
 | POST   | `/uploads/image`        | `{ "image": "data:image/...;base64,...", "name" }` → `{ "url", "thumbUrl" }`  |
 

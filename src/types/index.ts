@@ -46,6 +46,8 @@ export interface Equipment {
   active?: boolean;
   /** Link da foto (http/https): de qualquer site ou enviada pelo ImgBB. */
   photoUrl?: string;
+  /** Data em que o equipamento foi comprado. */
+  purchaseDate?: string;
   notes?: string;
 }
 export type EquipmentDoc = Equipment & DbFields;
@@ -64,8 +66,10 @@ export interface Spool {
   colors?: string[];
   /** Como desenhar a amostra quando há mais de uma cor. */
   colorMode?: ColorMode;
-  /** Ids dos acabamentos (Silk, Matte, Duo Color…), cadastrados em /finishes. */
-  finishIds?: string[];
+  /** Marca cadastrada em /brands. O campo `brand` guarda o nome dela (texto). */
+  brandId?: string | null;
+  /** Tipo do material dentro da marca (ex.: Lite, Silk, Rainbow). */
+  materialType?: string;
   /** Link da foto do carretel. */
   photoUrl?: string;
   diameter?: number;
@@ -84,12 +88,21 @@ export interface Spool {
 }
 export type SpoolDoc = Spool & DbFields;
 
-// Acabamentos de filamento
-export interface Finish {
-  name: string;
-  order?: number;
+// Marcas de filamento
+/** Um material vendido pela marca e os tipos dele (ex.: PLA → Lite, Silk, Rainbow). */
+export interface BrandMaterial {
+  material: string;
+  types: string[];
 }
-export type FinishDoc = Finish & DbFields;
+
+export interface Brand {
+  name: string;
+  materials: BrandMaterial[];
+  /** Peso do carretel vazio (tara) da marca: vira o padrão dos carretéis dela. */
+  emptySpoolGrams?: number;
+  notes?: string;
+}
+export type BrandDoc = Brand & DbFields;
 
 // Outros materiais
 /**
@@ -111,11 +124,22 @@ export interface Supply {
   /** Quanto ainda há em estoque. */
   quantityRemaining: number;
   supplier?: string;
+  /** Data da primeira compra (cadastro). As reposições ficam em `purchases`. */
   purchaseDate?: string;
+  /** Histórico de compras: o cadastro e cada reposição, com data, quantidade e valor. */
+  purchases?: SupplyPurchase[];
   archived?: boolean;
   notes?: string;
 }
 export type SupplyDoc = Supply & DbFields;
+
+/** Uma compra de material (cadastro ou reposição). */
+export interface SupplyPurchase {
+  date: string;
+  quantity: number;
+  /** Valor total pago nesta compra. */
+  price: number;
+}
 
 // Impressões / orçamentos
 /** Orçamento não mexe no estoque; concluída já teve o material descontado. */
@@ -160,6 +184,10 @@ export interface PrintInput {
   salePrice?: number | "";
   /** Link da foto da peça pronta. */
   photoUrl?: string;
+  /** Data do orçamento. Ao criar, vale hoje se não for informada. */
+  quotedAt?: string;
+  /** Data da venda do lote. Vazia (null) = ainda não vendido. */
+  soldAt?: string | null;
   notes?: string;
 }
 

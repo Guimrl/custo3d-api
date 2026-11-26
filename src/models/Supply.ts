@@ -11,7 +11,16 @@ const supplySchema = new mongoose.Schema<SupplyType>(
     pricePaid: numberField(), // total já pago por esse total
     quantityRemaining: numberField(), // em estoque
     supplier: { type: String },
-    purchaseDate: { type: Date },
+    purchaseDate: { type: Date }, // primeira compra (cadastro)
+    // Histórico de compras: o cadastro e cada reposição (botão Repor).
+    purchases: [
+      {
+        _id: false,
+        date: { type: Date, required: true },
+        quantity: numberField(),
+        price: numberField(), // valor total pago nesta compra
+      },
+    ],
     archived: { type: Boolean, default: false },
     photoUrl,
     notes: { type: String },

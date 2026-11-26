@@ -33,6 +33,10 @@ export interface PrintDb {
   salePrice: number;
   result: CostResult;
   photoUrl?: string;
+  /** Data do orçamento. */
+  quotedAt?: Date;
+  /** Data da venda do lote; null = ainda não vendido. */
+  soldAt?: Date | null;
   notes?: string;
 }
 
@@ -79,6 +83,11 @@ const printSchema = new mongoose.Schema<PrintDb>(
     ],
     salePrice: numberField(), // preço unitário de venda escolhido
     result: { type: Mixed }, // resultado de calculateCost(), congelado
+    // Sem "default" de propósito: o Mongoose aplicaria o padrão (hoje) também
+    // ao ler impressões antigas, que ficariam com uma data falsa. O
+    // PrintController preenche ao criar; as antigas usam o script db:migrate-dates.
+    quotedAt: { type: Date },
+    soldAt: { type: Date, default: null },
     photoUrl,
     notes: { type: String },
   },

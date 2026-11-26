@@ -16,11 +16,13 @@ interface ISummaryController {
 class SummaryController implements ISummaryController {
   find = async (_req: Request, res: Response): Promise<void> => {
     try {
-      const [settings, spoolList, supplyList, donePrints] = await Promise.all([
+      const [settings, spoolList, supplyList, donePrints, soldPrints] = await Promise.all([
         getSettings(),
         spools.find({ archived: { $ne: true } }),
         supplies.find({ archived: { $ne: true } }),
         prints.find({ status: "concluida" }),
+        // Vendido = tem data de venda (imprimir não é vender: consignação, estoque…).
+        prints.find({ soldAt: { $ne: null } }),
       ]);
 
       const filamentGrams = lodash.sumBy(spoolList, "remainingGrams");
@@ -33,7 +35,6 @@ class SummaryController implements ISummaryController {
         (supply) => supplyUnitCost(supply) * supply.quantityRemaining,
       );
 
-      const soldPrints = donePrints.filter((print) => print.salePrice > 0);
       const revenue = lodash.sumBy(
         soldPrints,
         (print) => print.salePrice * (print.quantity || 1),
@@ -60,6 +61,7 @@ class SummaryController implements ISummaryController {
               LOW_SUPPLY_RATIO,
         ),
         printsDone: donePrints.length,
+        printsSold: soldPrints.length,
         printHours: round2(
           lodash.sumBy(donePrints, (print) => print.printHours || 0),
         ),
