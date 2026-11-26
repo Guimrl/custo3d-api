@@ -14,7 +14,10 @@
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --fix",
-    "db:check": "tsx src/scripts/checkDb.ts"
+    "db:check": "tsx src/scripts/checkDb.ts",
+    "db:migrate-dates": "tsx src/scripts/migrateDates.ts",
+    "db:migrate-brands": "tsx src/scripts/migrateBrands.ts",
+    "db:migrate-types": "tsx src/scripts/migrateTypes.ts"
   },
   "author": "Guilherme Amaral",
   "license": "ISC",

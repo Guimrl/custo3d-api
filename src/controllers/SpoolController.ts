@@ -1,9 +1,12 @@
 import type { Request, Response } from "express";
+import { Types } from "mongoose";
 import {
+  BadRequestError,
   handleError,
   NotFoundError,
   withoutMetaFields,
 } from "../utils/handleError";
+import brands from "../models/Brand";
 import spools from "../models/Spools";
 
 interface ISpoolController {
@@ -15,8 +18,41 @@ interface ISpoolController {
   delete(req: Request, res: Response): Promise<void>;
 }
 
-const parseBody = (body: unknown) => {
+/**
+ * Marca escolhida no cadastro: guarda o id e copia o nome para o campo `brand`
+ * (texto), que é o que filtros, rótulos e impressões antigas usam.
+ * brandId vazio = carretel sem marca cadastrada (o texto digitado fica como está).
+ */
+const applyBrand = async (data: Record<string, unknown>) => {
+  if (!("brandId" in data)) {
+    return;
+  }
+
+  if (!data.brandId) {
+    data.brandId = null;
+
+    return;
+  }
+
+  if (!Types.ObjectId.isValid(String(data.brandId))) {
+    throw new BadRequestError("Marca inválida.");
+  }
+
+  const brand = await brands.findById(data.brandId);
+  if (!brand) {
+    throw new BadRequestError("Marca não encontrada.");
+  }
+
+  data.brand = brand.name;
+  // Sem tara informada, usa a da marca (dá para trocar na hora de pesar).
+  if (!Number(data.emptySpoolGrams) && brand.emptySpoolGrams) {
+    data.emptySpoolGrams = brand.emptySpoolGrams;
+  }
+};
+
+const parseBody = async (body: unknown) => {
   const data = withoutMetaFields(body);
+  await applyBrand(data);
   if (Array.isArray(data.colors)) {
     const colors = data.colors.filter(Boolean) as string[];
     data.colors = colors;
@@ -80,7 +116,7 @@ class SpoolController implements ISpoolController {
 
   post = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await spools.create(parseBody(req.body));
+      const result = await spools.create(await parseBody(req.body));
       res.status(201).json(result);
     } catch (error) {
       handleError(res, error, "Erro ao criar carretél");
@@ -91,7 +127,7 @@ class SpoolController implements ISpoolController {
     try {
       const result = await spools.findByIdAndUpdate(
         req.params.id,
-        { $set: parseBody(req.body) },
+        { $set: await parseBody(req.body) },
         { new: true, runValidators: true },
       );
       if (!result) {

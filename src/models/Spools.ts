@@ -13,7 +13,9 @@ const hexColor = {
 const spoolSchema = new mongoose.Schema<SpoolType>(
   {
     material: { type: String, default: "PLA", trim: true },
-    brand: { type: String, trim: true },
+    materialType: { type: String, trim: true }, // tipo dentro da marca: Lite, Silk, Rainbow…
+    brand: { type: String, trim: true }, // nome da marca (texto, usado em filtros e rótulos)
+    brandId: { type: mongoose.Schema.Types.ObjectId, ref: "brands", default: null }, // cadastro da marca
     color: { type: String, required: true, trim: true }, // nome da cor
     colorHex: { type: String, default: "#cccccc" }, // primeira cor (compatibilidade)
     colors: { type: [hexColor], default: undefined }, // todas as cores
@@ -22,7 +24,6 @@ const spoolSchema = new mongoose.Schema<SpoolType>(
       enum: ["solid", "stripes", "gradient"],
       default: "solid",
     },
-    finishIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "finishes" }], // acabamentos
     photoUrl,
     diameter: { type: Number, default: 1.75 },
     weightGrams: numberField({ default: 1000 }), // peso líquido original (g)

@@ -17,12 +17,15 @@ import {
 } from "../services/calc";
 import supplies from "../models/Supply";
 import { applyStock } from "../services/stock";
+import { parseDate } from "../utils/dates";
 
 interface IPrintController {
   findAll(req: Request, res: Response): Promise<void>;
   findById(req: Request, res: Response): Promise<void>;
   post(req: Request, res: Response): Promise<void>;
   complete(req: Request, res: Response): Promise<void>;
+  sell(req: Request, res: Response): Promise<void>;
+  unsell(req: Request, res: Response): Promise<void>;
   update(req: Request, res: Response): Promise<void>;
   delete(req: Request, res: Response): Promise<void>;
 }
@@ -33,13 +36,24 @@ const toId = (value: unknown) =>
     : null;
 
 const spoolLabel = (spool: Spool) =>
-  [spool.material, spool.color, spool.brand && `(${spool.brand})`]
+  [spool.material, spool.materialType, spool.color, spool.brand && `(${spool.brand})`]
     .filter(Boolean)
     .join(" ");
 
+/**
+ * Datas da impressão a partir do corpo da requisição:
+ * - quotedAt: null quando não veio (quem chama decide: hoje, ao criar; a atual, ao editar);
+ * - soldAt: só entra se o campo veio no corpo (null/"" = desmarcar venda),
+ *   para que telas que não enviam a data de venda não a apaguem sem querer.
+ */
+const readDates = (body: PrintInput) => ({
+  quotedAt: parseDate(body.quotedAt, "Data do orçamento"),
+  ...("soldAt" in body ? { soldAt: parseDate(body.soldAt, "Data da venda") } : {}),
+});
+
 const buildPrint = async (
   body: PrintInput,
-): Promise<Omit<PrintDb, "stockDeducted">> => {
+): Promise<Omit<PrintDb, "stockDeducted" | "quotedAt" | "soldAt">> => {
   const name = String(body.name ?? "").trim();
   if (!name) {
     throw new BadRequestError("Dê um nome para a peça.");
@@ -134,7 +148,7 @@ class PrintController implements IPrintController {
         typeof req.query.status === "string" ? req.query.status : undefined;
       const result = await prints
         .find(status ? { status } : {})
-        .sort({ createdAt: -1 });
+        .sort({ quotedAt: -1, createdAt: -1 });
 
       res.status(200).json(result);
     } catch (error) {
@@ -158,13 +172,19 @@ class PrintController implements IPrintController {
   post = async (req: Request, res: Response): Promise<void> => {
     try {
       const data = await buildPrint(req.body);
+      const { quotedAt, ...dates } = readDates(req.body);
       let warnings: string[] = [];
       let stockDeducted = false;
       if (data.status === "concluida") {
         warnings = await applyStock(data, -1);
         stockDeducted = true;
       }
-      const result = await prints.create({ ...data, stockDeducted });
+      const result = await prints.create({
+        ...data,
+        ...dates,
+        quotedAt: quotedAt ?? new Date(),
+        stockDeducted,
+      });
 
       res.status(201).json({ ...result.toJSON(), warnings });
     } catch (error) {
@@ -188,6 +208,43 @@ class PrintController implements IPrintController {
     }
   };
 
+  /** Marca o lote como vendido. Sem data no corpo, usa hoje. */
+  sell = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const soldAt = parseDate(req.body?.soldAt, "Data da venda") ?? new Date();
+      const print = await prints.findByIdAndUpdate(
+        req.params.id,
+        { $set: { soldAt } },
+        { new: true },
+      );
+      if (!print) {
+        throw new NotFoundError("Impressão não encontrada.");
+      }
+
+      res.status(200).json(print);
+    } catch (error) {
+      handleError(res, error, "Erro ao marcar venda");
+    }
+  };
+
+  /** Desfaz a venda (o lote volta a ficar sem data de venda). */
+  unsell = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const print = await prints.findByIdAndUpdate(
+        req.params.id,
+        { $set: { soldAt: null } },
+        { new: true },
+      );
+      if (!print) {
+        throw new NotFoundError("Impressão não encontrada.");
+      }
+
+      res.status(200).json(print);
+    } catch (error) {
+      handleError(res, error, "Erro ao desfazer venda");
+    }
+  };
+
   update = async (req: Request, res: Response): Promise<void> => {
     try {
       const print = await prints.findById(req.params.id);
@@ -195,6 +252,7 @@ class PrintController implements IPrintController {
         throw new NotFoundError("Impressão não encontrada.");
       }
       const data = await buildPrint(req.body);
+      const { quotedAt, ...dates } = readDates(req.body);
 
       if (print.stockDeducted) {
         await applyStock(print, +1);
@@ -205,7 +263,12 @@ class PrintController implements IPrintController {
         warnings = await applyStock(data, -1);
         stockDeducted = true;
       }
-      print.set({ ...data, stockDeducted });
+      print.set({
+        ...data,
+        ...dates,
+        quotedAt: quotedAt ?? print.quotedAt,
+        stockDeducted,
+      });
       await print.save();
 
       res.status(200).json({ ...print.toJSON(), warnings });

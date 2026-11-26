@@ -6,6 +6,7 @@ import {
   NotFoundError,
   withoutMetaFields,
 } from "../utils/handleError";
+import { parseDate } from "../utils/dates";
 
 interface ISupplyController {
   findAll(req: Request, res: Response): Promise<void>;
@@ -50,7 +51,19 @@ class SupplyController implements ISupplyController {
       if (body.quantityRemaining === "" || body.quantityRemaining == null) {
         body.quantityRemaining = body.quantityPurchased;
       }
-      const result = await supplies.create(body);
+      // O cadastro é a primeira compra do histórico.
+      const purchaseDate = parseDate(body.purchaseDate, "Data da compra") ?? new Date();
+      const result = await supplies.create({
+        ...body,
+        purchaseDate,
+        purchases: [
+          {
+            date: purchaseDate,
+            quantity: Number(body.quantityPurchased) || 0,
+            price: Number(body.pricePaid) || 0,
+          },
+        ],
+      });
       res.status(201).json(result);
     } catch (error) {
       handleError(res, error, "Erro ao cadastrar material");
@@ -64,7 +77,9 @@ class SupplyController implements ISupplyController {
       if (quantity <= 0) {
         throw new BadRequestError("Quantidade deve ser maior que zero.");
       }
+      const date = parseDate(req.body?.date, "Data da compra") ?? new Date();
 
+      // Soma nos totais (custo médio) e registra a compra no histórico.
       const result = await supplies.findByIdAndUpdate(
         req.params.id,
         {
@@ -73,6 +88,7 @@ class SupplyController implements ISupplyController {
             quantityRemaining: quantity,
             pricePaid: price,
           },
+          $push: { purchases: { date, quantity, price } },
         },
         { new: true },
       );

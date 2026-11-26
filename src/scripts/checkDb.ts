@@ -13,7 +13,7 @@ const COLLECTIONS = [
   "supplies",
   "equipment",
   "prints",
-  "finishes",
+  "brands",
 ];
 
 /** Esconde a senha para poder exibir a URL no terminal. */

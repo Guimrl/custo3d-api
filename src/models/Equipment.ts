@@ -12,6 +12,7 @@ const equipmentSchema = new mongoose.Schema<EquipmentType>(
     powerWatts: numberField({ default: 150 }), // consumo médio (W)
     maintenancePerHour: numberField(), // R$/h de manutenção (só impressoras)
     active: { type: Boolean, default: true },
+    purchaseDate: { type: Date }, // data da compra
     photoUrl,
     notes: { type: String },
   },
